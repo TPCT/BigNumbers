@@ -23,13 +23,16 @@ typedef const char * const stringConstant;
 typedef char * String;
 
 void printBigNumber(bigNumberPtr bigNumber);
-
 void freeBigNumber(bigNumberPtr bigNumber);
 
 void printBinaryNumber(long long number);
 
 bigNumberPtr storeBigNumber(stringConstant);
-
 bigNumberPtr addBigNumbers(unsigned long long count, ...);
 
+bigNumberPtr firstComplementBigNumbers(bigNumberPtr bigNumber);
+
+bigNumberPtr secondComplementBigNumbers(bigNumberPtr bigNumber);
+
+bigNumberPtr getMaxBigNumber(unsigned long long count, ...);
 #endif
