@@ -1,10 +1,9 @@
 #include "Bignumbers.h"
 
 int main() {
-    bigNumberPtr firstNumber = storeBigNumber("-111");
-    bigNumberPtr secondNumber = storeBigNumber("112");
-    bigNumberPtr thirdNumber = storeBigNumber("112");
-    bigNumberPtr minimumNumber = getMinBigNumber(3, firstNumber, secondNumber, thirdNumber);
+    bigNumberPtr firstNumber = storeBigNumber("-1025");
+    bigNumberPtr secondNumber = storeBigNumber("-210");
+    bigNumberPtr minimumNumber = subtractBigNumbers(2, firstNumber, secondNumber);
     printBigNumber(minimumNumber);
     /*bigNumberPtr secondNumber = storeBigNumber("+00000");
     bigNumberPtr thirdNumber = storeBigNumber("+0100");
@@ -13,7 +12,6 @@ int main() {
     */
     freeBigNumber(firstNumber);
     freeBigNumber(secondNumber);
-    freeBigNumber(thirdNumber);
     freeBigNumber(minimumNumber);
     /*freeBigNumber(secondNumber);
     freeBigNumber(thirdNumber);

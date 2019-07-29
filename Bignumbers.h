@@ -28,13 +28,17 @@ void freeBigNumber(bigNumberPtr bigNumber);
 void printBinaryNumber(long long number);
 
 bigNumberPtr storeBigNumber(stringConstant);
+
 bigNumberPtr addBigNumbers(unsigned long long count, ...);
+
+bigNumberPtr subtractBigNumbers(unsigned long long count, ...);
+
+bigNumberPtr getMaxBigNumber(unsigned long long count, ...);
+
+bigNumberPtr getMinBigNumber(unsigned long long count, ...);
 
 bigNumberPtr firstComplementBigNumber(bigNumberPtr bigNumber);
 
 bigNumberPtr secondComplementBigNumber(bigNumberPtr bigNumber);
 
-bigNumberPtr getMaxBigNumber(unsigned long long count, ...);
-
-bigNumberPtr getMinBigNumber(unsigned long long count, ...);
 #endif
