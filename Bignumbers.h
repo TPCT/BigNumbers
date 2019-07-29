@@ -30,9 +30,11 @@ void printBinaryNumber(long long number);
 bigNumberPtr storeBigNumber(stringConstant);
 bigNumberPtr addBigNumbers(unsigned long long count, ...);
 
-bigNumberPtr firstComplementBigNumbers(bigNumberPtr bigNumber);
+bigNumberPtr firstComplementBigNumber(bigNumberPtr bigNumber);
 
-bigNumberPtr secondComplementBigNumbers(bigNumberPtr bigNumber);
+bigNumberPtr secondComplementBigNumber(bigNumberPtr bigNumber);
 
 bigNumberPtr getMaxBigNumber(unsigned long long count, ...);
+
+bigNumberPtr getMinBigNumber(unsigned long long count, ...);
 #endif
