@@ -1,5 +1,7 @@
 #ifndef BIGNUMBERS_H
 #define BIGNUMBERS_H
+#define True 1
+#define False 0
 #include <string.h>
 #include <stdio.h>
 #include <malloc.h>

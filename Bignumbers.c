@@ -1,5 +1,21 @@
 #include "Bignumbers.h"
 
+static bigNumberPtr _specialGetMaxBigNumber(bigNumberPtr firstNumber, bigNumberPtr secondNumber);
+
+static bigNumberPtr _specialGetMinBigNumber(bigNumberPtr firstNumber, bigNumberPtr secondNumber);
+
+static bigNumberPtr _addBigNumbers(bigNumberPtr firstNumber, bigNumberPtr secondNumber);
+
+static bigNumberPtr _subtractBigNumbers(bigNumberPtr firstNumber, bigNumberPtr secondNumber);
+
+static bigNumberPtr _getMaxBigNumber(bigNumberPtr firstNumber, bigNumberPtr secondNumber);
+
+static bigNumberPtr _getMinBigNumber(bigNumberPtr firstNumber, bigNumberPtr secondNumber);
+
+static bigNumberPtr _firstComplementBigNumber(bigNumberPtr firstNumber);
+
+static bigNumberPtr _secondComplementBigNumber(bigNumberPtr firstNumber);
+
 static void _BigNumberCpy(bigNumberPtr *destNumber, bigNumberPtr srcNumber) {
     if (!destNumber || !srcNumber)
         return;
@@ -30,9 +46,143 @@ static void _BigNumberCpy(bigNumberPtr *destNumber, bigNumberPtr srcNumber) {
     (*destNumber)->digits = (*destNumber)->digits->nextChunk;
 }
 
+static bigNumberPtr _specialGetMaxBigNumber(bigNumberPtr firstNumber, bigNumberPtr secondNumber) {
+    if (!firstNumber || !firstNumber->digits) return secondNumber;
+    if (!secondNumber || !secondNumber->digits) return firstNumber;
+    bigNumberDigitsPtr firstNumberDigits = firstNumber->digits;
+    bigNumberDigitsPtr secondNumberDigits = secondNumber->digits;
+    bigNumberPtr maxBigNumber = NULL;
+    if ((!firstNumber->isNegative &&
+         (secondNumber->isNegative || firstNumber->numberLength > secondNumber->numberLength)) ||
+        (firstNumber->isNegative && secondNumber->isNegative &&
+         (firstNumber->numberLength < secondNumber->numberLength)))
+        maxBigNumber = firstNumber;
+    else if ((!secondNumber->isNegative &&
+              (firstNumber->isNegative || secondNumber->numberLength > firstNumber->numberLength)) || (
+                     firstNumber->isNegative && secondNumber->isNegative &&
+                     (firstNumber->numberLength > secondNumber->numberLength)))
+        maxBigNumber = secondNumber;
+    else {
+        unsigned long long counter = 0;
+        while (counter < firstNumber->numberLength) {
+            if (!firstNumber->isNegative && !secondNumber->isNegative) {
+                if (firstNumberDigits->chunkOfNumber0 > secondNumberDigits->chunkOfNumber0) {
+                    maxBigNumber = firstNumber;
+                    break;
+                } else if (firstNumberDigits->chunkOfNumber0 < secondNumberDigits->chunkOfNumber0) {
+                    maxBigNumber = secondNumber;
+                    break;
+                } else {
+                    if (firstNumberDigits->chunkOfNumber1 > secondNumberDigits->chunkOfNumber1) {
+                        maxBigNumber = firstNumber;
+                        break;
+                    } else if (firstNumberDigits->chunkOfNumber1 < secondNumberDigits->chunkOfNumber1) {
+                        maxBigNumber = secondNumber;
+                        break;
+                    }
+                }
+            } else {
+                if (firstNumberDigits->chunkOfNumber0 > secondNumberDigits->chunkOfNumber0) {
+                    maxBigNumber = firstNumber;
+                    break;
+                } else if (firstNumberDigits->chunkOfNumber0 < secondNumberDigits->chunkOfNumber0) {
+                    maxBigNumber = firstNumber;
+                    break;
+                } else {
+                    if (firstNumberDigits->chunkOfNumber1 > secondNumberDigits->chunkOfNumber1) {
+                        maxBigNumber = secondNumber;
+                        break;
+                    } else if (firstNumberDigits->chunkOfNumber1 < secondNumberDigits->chunkOfNumber1) {
+                        maxBigNumber = firstNumber;
+                        break;
+                    }
+                }
+            }
+            firstNumberDigits = firstNumberDigits->nextChunk;
+            secondNumberDigits = secondNumberDigits->nextChunk;
+            counter += 2;
+        }
+    }
+    if (!maxBigNumber) {
+        maxBigNumber = firstNumber;
+    }
+    return maxBigNumber;
+
+}
+
+static bigNumberPtr _specialGetMinBigNumber(bigNumberPtr firstNumber, bigNumberPtr secondNumber) {
+    if (!firstNumber || !firstNumber->digits) return secondNumber;
+    if (!secondNumber || !secondNumber->digits) return firstNumber;
+    bigNumberDigitsPtr firstNumberDigits = firstNumber->digits;
+    bigNumberDigitsPtr secondNumberDigits = secondNumber->digits;
+    bigNumberPtr minBigNumber = NULL;
+    if ((!firstNumber->isNegative &&
+         (secondNumber->isNegative || firstNumber->numberLength > secondNumber->numberLength)) ||
+        (firstNumber->isNegative && secondNumber->isNegative &&
+         (firstNumber->numberLength < secondNumber->numberLength)))
+        minBigNumber = secondNumber;
+    else if ((!secondNumber->isNegative &&
+              (firstNumber->isNegative || secondNumber->numberLength > firstNumber->numberLength)) || (
+                     firstNumber->isNegative && secondNumber->isNegative &&
+                     (firstNumber->numberLength > secondNumber->numberLength)))
+        minBigNumber = firstNumber;
+    else {
+        unsigned long long counter = 0;
+        while (counter < firstNumber->numberLength) {
+            if (!firstNumber->isNegative && !secondNumber->isNegative) {
+                if (firstNumberDigits->chunkOfNumber0 > secondNumberDigits->chunkOfNumber0) {
+                    minBigNumber = secondNumber;
+                    break;
+                } else if (firstNumberDigits->chunkOfNumber0 < secondNumberDigits->chunkOfNumber0) {
+                    minBigNumber = firstNumber;
+                    break;
+                } else {
+                    if (firstNumberDigits->chunkOfNumber1 > secondNumberDigits->chunkOfNumber1) {
+                        minBigNumber = secondNumber;
+                        break;
+                    } else if (firstNumberDigits->chunkOfNumber1 < secondNumberDigits->chunkOfNumber1) {
+                        minBigNumber = firstNumber;
+                        break;
+                    }
+                }
+            } else {
+                if (firstNumberDigits->chunkOfNumber0 > secondNumberDigits->chunkOfNumber0) {
+                    minBigNumber = firstNumber;
+                    break;
+                } else if (firstNumberDigits->chunkOfNumber0 < secondNumberDigits->chunkOfNumber0) {
+                    minBigNumber = secondNumber;
+                    break;
+                } else {
+                    if (firstNumberDigits->chunkOfNumber1 > secondNumberDigits->chunkOfNumber1) {
+                        minBigNumber = firstNumber;
+                        break;
+                    } else if (firstNumberDigits->chunkOfNumber1 < secondNumberDigits->chunkOfNumber1) {
+                        minBigNumber = secondNumber;
+                        break;
+                    }
+                }
+            }
+            firstNumberDigits = firstNumberDigits->nextChunk;
+            secondNumberDigits = secondNumberDigits->nextChunk;
+            counter += 2;
+        }
+    }
+    if (!minBigNumber) {
+        minBigNumber = firstNumber;
+    }
+    return minBigNumber;
+
+}
+
 static bigNumberPtr _addBigNumbers(bigNumberPtr firstNumber, bigNumberPtr secondNumber) {
-    if (!firstNumber || !firstNumber->digits || !secondNumber || !secondNumber->digits) return NULL;
-    bigNumberPtr AdditionNumber = (bigNumberPtr) calloc(1, sizeof(bigNumber));
+    if (!firstNumber || !firstNumber->digits) return secondNumber;
+    if (!secondNumber || !secondNumber->digits) return firstNumber;
+    bigNumberPtr AdditionNumber;
+    if (firstNumber->isNegative != secondNumber->isNegative) {
+        AdditionNumber = _subtractBigNumbers(firstNumber, secondNumber);
+        return AdditionNumber;
+    }
+    AdditionNumber = (bigNumberPtr) calloc(1, sizeof(bigNumber));
     bigNumberDigitsPtr Tail = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumberDigits));
     bigNumberDigitsPtr additionDigits = Tail;
     bigNumberDigitsPtr firstNumberDigits = firstNumber->digits->previousChunk;
@@ -54,50 +204,46 @@ static bigNumberPtr _addBigNumbers(bigNumberPtr firstNumber, bigNumberPtr second
                                       minLength = firstNumber->numberLength,
                     secondNumber->numberLength);
     while (counter < maxLength || (opResult & 0x80)) {
-        if (opResult & 0x40) {
-            nextChunk = additionDigits;
-            if (opResult & 0x20) {
-                if (counter < minLength) {
-                    opResult = 0x40 | (firstNumberDigits->chunkOfNumber0 +
-                                       secondNumberDigits->chunkOfNumber0 + ((opResult & 0x80) >> 7));
-                    if ((opResult & 0x1F) > 9)
-                        opResult = 0x80 | 0x40 | ((opResult & 0x1F) - 10);
-                    firstNumberDigits = firstNumberDigits->previousChunk;
-                    secondNumberDigits = secondNumberDigits->previousChunk;
-                } else {
-                    opResult = 0x40 | (dominant->chunkOfNumber0 + ((opResult & 0x80) >> 7));
-                    if ((opResult & 0x1F) > 9)
-                        opResult = 0x80 | 0x40 | ((opResult & 0x1F) - 10);
-                }
-                dominant = dominant->previousChunk;
-                additionDigits->chunkOfNumber0 = opResult & 0x1F;
-                if ((counter + 1) < maxLength || (opResult & 0x80)) {
-                    additionDigits->previousChunk = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumberDigits));
-                    additionDigits = additionDigits->previousChunk;
-                    additionDigits->nextChunk = nextChunk;
-                }
+        nextChunk = additionDigits;
+        if (opResult & 0x20) {
+            if (counter < minLength) {
+                opResult = 0x40 | (firstNumberDigits->chunkOfNumber0 +
+                                   secondNumberDigits->chunkOfNumber0 + ((opResult & 0x80) >> 7));
+                if ((opResult & 0x1F) > 9)
+                    opResult = 0x80 | 0x40 | ((opResult & 0x1F) - 10);
+                firstNumberDigits = firstNumberDigits->previousChunk;
+                secondNumberDigits = secondNumberDigits->previousChunk;
             } else {
-                if (counter < minLength) {
-                    opResult = 0x40 | 0x20 | (firstNumberDigits->chunkOfNumber1 +
-                                              secondNumberDigits->chunkOfNumber1 + ((opResult & 0x80) >> 7));
-                    if ((opResult & 0x1F) > 9)
-                        opResult = 0x80 | 0x20 | (opResult & 0x40) | ((opResult & 0x1F) - 10);
-                    additionDigits->chunkOfNumber1 = opResult & 0x1F;
-                } else if (counter < maxLength) {
-                    opResult = 0x40 | 0x20 | (dominant->chunkOfNumber1 + ((opResult & 0x80) >> 7));
-                    if ((opResult & 0x1F) > 9)
-                        opResult = 0x80 | 0x20 | (opResult & 0x40) | ((opResult & 0x1F) - 10);
-                    additionDigits->chunkOfNumber1 = opResult & 0x1F;
-                } else {
-                    opResult = 0x40 | 0x20 | ((opResult & 0x80) >> 7);
-                    if ((opResult & 0x1F) > 9)
-                        opResult = 0x80 | 0x20 | (opResult & 0x40) | ((opResult & 0x1F) - 10);
-                    additionDigits->chunkOfNumber1 = opResult & 0x1F;
-                    AdditionNumber->numberLength++;
-                }
+                opResult = 0x40 | (dominant->chunkOfNumber0 + ((opResult & 0x80) >> 7));
+                if ((opResult & 0x1F) > 9)
+                    opResult = 0x80 | 0x40 | ((opResult & 0x1F) - 10);
+            }
+            dominant = dominant->previousChunk;
+            additionDigits->chunkOfNumber0 = opResult & 0x1F;
+            if ((counter + 1) < maxLength || (opResult & 0x80)) {
+                additionDigits->previousChunk = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumberDigits));
+                additionDigits = additionDigits->previousChunk;
+                additionDigits->nextChunk = nextChunk;
             }
         } else {
-
+            if (counter < minLength) {
+                opResult = 0x40 | 0x20 | (firstNumberDigits->chunkOfNumber1 +
+                                          secondNumberDigits->chunkOfNumber1 + ((opResult & 0x80) >> 7));
+                if ((opResult & 0x1F) > 9)
+                    opResult = 0x80 | 0x20 | (opResult & 0x40) | ((opResult & 0x1F) - 10);
+                additionDigits->chunkOfNumber1 = opResult & 0x1F;
+            } else if (counter < maxLength) {
+                opResult = 0x40 | 0x20 | (dominant->chunkOfNumber1 + ((opResult & 0x80) >> 7));
+                if ((opResult & 0x1F) > 9)
+                    opResult = 0x80 | 0x20 | (opResult & 0x40) | ((opResult & 0x1F) - 10);
+                additionDigits->chunkOfNumber1 = opResult & 0x1F;
+            } else {
+                opResult = 0x40 | 0x20 | ((opResult & 0x80) >> 7);
+                if ((opResult & 0x1F) > 9)
+                    opResult = 0x80 | 0x20 | (opResult & 0x40) | ((opResult & 0x1F) - 10);
+                additionDigits->chunkOfNumber1 = opResult & 0x1F;
+                AdditionNumber->numberLength++;
+            }
         }
         counter++;
     }
@@ -109,7 +255,7 @@ static bigNumberPtr _addBigNumbers(bigNumberPtr firstNumber, bigNumberPtr second
 
 static bigNumberPtr _firstComplementBigNumber(bigNumberPtr Number) {
     if (!Number)
-        return NULL;
+        return Number;
     unsigned long long counter = 0;
     bigNumberPtr complementNumber = (bigNumberPtr) calloc(1, sizeof(bigNumber));
     bigNumberDigitsPtr Tail = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumberDigits));
@@ -143,7 +289,7 @@ static bigNumberPtr _firstComplementBigNumber(bigNumberPtr Number) {
 
 static bigNumberPtr _secondComplementBigNumber(bigNumberPtr Number) {
     if (!Number)
-        return NULL;
+        return Number;
     unsigned long long counter = 0;
     bigNumberPtr complementNumber = (bigNumberPtr) calloc(1, sizeof(bigNumber));
     bigNumberDigitsPtr Tail = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumberDigits));
@@ -183,6 +329,8 @@ static bigNumberPtr _secondComplementBigNumber(bigNumberPtr Number) {
 }
 
 static bigNumberPtr _getMaxBigNumber(bigNumberPtr firstNumber, bigNumberPtr secondNumber) {
+    if (!firstNumber || !firstNumber->digits) return secondNumber;
+    if (!secondNumber || !secondNumber->digits) return firstNumber;
     bigNumberDigitsPtr firstNumberDigits = firstNumber->digits;
     bigNumberDigitsPtr secondNumberDigits = secondNumber->digits;
     bigNumberPtr maxBigNumber = NULL;
@@ -244,6 +392,8 @@ static bigNumberPtr _getMaxBigNumber(bigNumberPtr firstNumber, bigNumberPtr seco
 }
 
 static bigNumberPtr _getMinBigNumber(bigNumberPtr firstNumber, bigNumberPtr secondNumber) {
+    if (!firstNumber || !firstNumber->digits) return secondNumber;
+    if (!secondNumber || !secondNumber->digits) return firstNumber;
     bigNumberDigitsPtr firstNumberDigits = firstNumber->digits;
     bigNumberDigitsPtr secondNumberDigits = secondNumber->digits;
     bigNumberPtr minBigNumber = NULL;
@@ -305,20 +455,87 @@ static bigNumberPtr _getMinBigNumber(bigNumberPtr firstNumber, bigNumberPtr seco
 }
 
 static bigNumberPtr _subtractBigNumbers(bigNumberPtr firstNumber, bigNumberPtr secondNumber) {
-    if (!firstNumber || !firstNumber->digits || !secondNumber || !secondNumber->digits) return NULL;
-    bigNumberPtr greatestNumber = _getMaxBigNumber(firstNumber, secondNumber);
-    bigNumberPtr smallestNumber = _getMinBigNumber(firstNumber, secondNumber);
-    bigNumberPtr subtractionNumber = (bigNumberPtr) calloc(1, sizeof(bigNumber));
-    bigNumberDigitsPtr greatestNumberDigits = greatestNumber->digits->previousChunk;
-    bigNumberDigitsPtr smallestNumberDigits = smallestNumber->digits->previousChunk;
-    bigNumberDigitsPtr subtractionNumberDigits = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumberDigits));
-    bigNumberDigitsPtr tempOpPtr = subtractionNumberDigits;
-    bigNumberDigitsPtr nextChunk = NULL;
-    subtractionNumber->numberLength = greatestNumber->numberLength;
-    subtractionNumber->digits = subtractionNumberDigits;
-    char opResult = 0x40;
-    unsigned long long counter = 0;
-    return subtractionNumber;
+    if (!firstNumber || !firstNumber->digits) return secondNumber;
+    if (!secondNumber || !secondNumber->digits) return firstNumber;
+    bigNumberPtr tempNumber = NULL;
+    if (secondNumber->isNegative && !firstNumber->isNegative) {
+        secondNumber->isNegative = False;
+        tempNumber = _addBigNumbers(firstNumber, secondNumber);
+        secondNumber->isNegative = True;
+    } else if (!secondNumber->isNegative && firstNumber->isNegative) {
+        secondNumber->isNegative = True;
+        tempNumber = _addBigNumbers(firstNumber, secondNumber);
+        secondNumber->isNegative = False;
+
+    } else {
+        bigNumberPtr greatestNumber = _specialGetMaxBigNumber(firstNumber, secondNumber);
+        bigNumberPtr smallestNumber = _specialGetMinBigNumber(firstNumber, secondNumber);
+        tempNumber = (bigNumberPtr) calloc(1, sizeof(bigNumber));
+        bigNumberDigitsPtr greatestNumberDigits = greatestNumber->digits->previousChunk;
+        bigNumberDigitsPtr smallestNumberDigits = smallestNumber->digits->previousChunk;
+        bigNumberDigitsPtr Tail = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumberDigits));
+        bigNumberDigitsPtr subtractionDigits = Tail;
+        bigNumberDigitsPtr nextChunk = NULL;
+        if (greatestNumber == secondNumber)
+            tempNumber->isNegative = 1;
+        tempNumber->numberLength = greatestNumber->numberLength;
+        char opResult = 0x40;
+        unsigned long long counter = 0;
+        while (counter < greatestNumber->numberLength) {
+            if (counter < smallestNumber->numberLength) {
+                if (opResult & 0x40) {
+                    if (greatestNumberDigits->chunkOfNumber1 <
+                        (smallestNumberDigits->chunkOfNumber1 + ((opResult & 0x80) >> 7))) {
+                        opResult = 0x80 | (10 + greatestNumberDigits->chunkOfNumber1 -
+                                           smallestNumberDigits->chunkOfNumber1 - ((opResult & 0x80) >> 7));
+                    } else {
+                        opResult = (greatestNumberDigits->chunkOfNumber1 -
+                                    smallestNumberDigits->chunkOfNumber1 - ((opResult & 0x80) >> 7));
+                    }
+                    subtractionDigits->chunkOfNumber1 = opResult & 0x1F;
+                } else {
+                    if (greatestNumberDigits->chunkOfNumber0 <
+                        (smallestNumberDigits->chunkOfNumber0 + ((opResult & 0x80) >> 7))) {
+                        opResult = 0x80 | 0x40 | (10 + greatestNumberDigits->chunkOfNumber0 -
+                                                  smallestNumberDigits->chunkOfNumber0 - ((opResult & 0x80) >> 7));
+                    } else {
+                        opResult = 0x40 | (greatestNumberDigits->chunkOfNumber0 -
+                                           smallestNumberDigits->chunkOfNumber0 - ((opResult & 0x80) >> 7));
+                    }
+                    subtractionDigits->chunkOfNumber0 = opResult & 0x1F;
+                    greatestNumberDigits = greatestNumberDigits->previousChunk;
+                    smallestNumberDigits = smallestNumberDigits->previousChunk;
+                    nextChunk = subtractionDigits;
+                    if ((counter + 1) < greatestNumber->numberLength) {
+                        subtractionDigits->previousChunk = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumberDigits));
+                        subtractionDigits = subtractionDigits->previousChunk;
+                        subtractionDigits->nextChunk = nextChunk;
+                    }
+                }
+            } else {
+                if (opResult & 0x40) {
+                    opResult = greatestNumberDigits->chunkOfNumber1 - ((opResult & 0x80) >> 7);
+                    subtractionDigits->chunkOfNumber1 = opResult & 0x1F;
+                } else {
+                    opResult = 0x40 | greatestNumberDigits->chunkOfNumber0 - ((opResult & 0x80) >> 7);
+                    subtractionDigits->chunkOfNumber0 = opResult & 0x1F;
+                    greatestNumberDigits = greatestNumberDigits->previousChunk;
+                    nextChunk = subtractionDigits;
+                    if ((counter + 1) < greatestNumber->numberLength) {
+                        subtractionDigits->previousChunk = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumberDigits));
+                        subtractionDigits = subtractionDigits->previousChunk;
+                        subtractionDigits->nextChunk = nextChunk;
+                    }
+
+                }
+            }
+            counter++;
+        }
+        Tail->nextChunk = subtractionDigits;
+        subtractionDigits->previousChunk = Tail;
+        tempNumber->digits = subtractionDigits;
+    }
+    return tempNumber;
 }
 
 bigNumberPtr storeBigNumber(stringConstant number) {
@@ -403,12 +620,10 @@ bigNumberPtr storeBigNumber(stringConstant number) {
 }
 
 bigNumberPtr addBigNumbers(unsigned long long count, ...) {
-    if (count < 2)
-        return NULL;
-    va_list addList;
     bigNumberPtr firstNumber = NULL;
     bigNumberPtr secondNumber = NULL;
     bigNumberPtr additionNumber = NULL;
+    va_list addList;
     va_start(addList, count);
     for (int i = 0; i < count;) {
         if (!i) {
@@ -424,51 +639,49 @@ bigNumberPtr addBigNumbers(unsigned long long count, ...) {
             i++;
         }
     }
+    va_end(addList);
     return additionNumber;
 }
 
 bigNumberPtr subtractBigNumbers(unsigned long long count, ...) {
-    if (count < 2)
-        return NULL;
-    va_list addList;
+    va_list subtractList;
+    va_start(subtractList, count);
     bigNumberPtr firstNumber = NULL;
     bigNumberPtr secondNumber = NULL;
     bigNumberPtr subtractionNumber = NULL;
-    va_start(addList, count);
     for (int i = 0; i < count;) {
         if (!i) {
-            firstNumber = va_arg(addList, bigNumberPtr);
-            secondNumber = va_arg(addList, bigNumberPtr);
+            firstNumber = va_arg(subtractList, bigNumberPtr);
+            secondNumber = va_arg(subtractList, bigNumberPtr);
             i += 2;
             subtractionNumber = _subtractBigNumbers(firstNumber, secondNumber);
         } else {
             firstNumber = subtractionNumber;
-            secondNumber = va_arg(addList, bigNumberPtr);
+            secondNumber = va_arg(subtractList, bigNumberPtr);
             subtractionNumber = _subtractBigNumbers(firstNumber, secondNumber);
             freeBigNumber(firstNumber);
             i++;
         }
     }
+    va_end(subtractList);
     return subtractionNumber;
 }
 
 bigNumberPtr getMaxBigNumber(unsigned long long count, ...) {
-    va_list addList;
-    va_start(addList, count);
-    if (count < 2)
-        return va_arg(addList, bigNumberPtr);
+    va_list compareList;
+    va_start(compareList, count);
     bigNumberPtr firstNumber = NULL;
     bigNumberPtr secondNumber = NULL;
     bigNumberPtr maxNumber = NULL;
     for (int i = 0; i < count;) {
         if (!i) {
-            firstNumber = va_arg(addList, bigNumberPtr);
-            secondNumber = va_arg(addList, bigNumberPtr);
+            firstNumber = va_arg(compareList, bigNumberPtr);
+            secondNumber = va_arg(compareList, bigNumberPtr);
             i += 2;
             maxNumber = _getMaxBigNumber(firstNumber, secondNumber);
         } else {
             firstNumber = maxNumber;
-            secondNumber = va_arg(addList, bigNumberPtr);
+            secondNumber = va_arg(compareList, bigNumberPtr);
             maxNumber = _getMaxBigNumber(firstNumber, secondNumber);
             freeBigNumber(firstNumber);
             i++;
@@ -476,26 +689,25 @@ bigNumberPtr getMaxBigNumber(unsigned long long count, ...) {
     }
     if (!maxNumber)
         memcpy(maxNumber, firstNumber, sizeof(bigNumber));
+    va_end(compareList);
     return maxNumber;
 }
 
 bigNumberPtr getMinBigNumber(unsigned long long count, ...) {
-    va_list addList;
-    va_start(addList, count);
-    if (count < 2)
-        return va_arg(addList, bigNumberPtr);
     bigNumberPtr firstNumber = NULL;
     bigNumberPtr secondNumber = NULL;
     bigNumberPtr maxNumber = NULL;
+    va_list compareList;
+    va_start (compareList, count);
     for (int i = 0; i < count;) {
         if (!i) {
-            firstNumber = va_arg(addList, bigNumberPtr);
-            secondNumber = va_arg(addList, bigNumberPtr);
+            firstNumber = va_arg(compareList, bigNumberPtr);
+            secondNumber = va_arg(compareList, bigNumberPtr);
             i += 2;
             maxNumber = _getMinBigNumber(firstNumber, secondNumber);
         } else {
             firstNumber = maxNumber;
-            secondNumber = va_arg(addList, bigNumberPtr);
+            secondNumber = va_arg(compareList, bigNumberPtr);
             maxNumber = _getMinBigNumber(firstNumber, secondNumber);
             freeBigNumber(firstNumber);
             i++;
@@ -503,6 +715,7 @@ bigNumberPtr getMinBigNumber(unsigned long long count, ...) {
     }
     if (!maxNumber)
         memcpy(maxNumber, firstNumber, sizeof(bigNumber));
+    va_end(compareList);
     return maxNumber;
 }
 
@@ -515,7 +728,7 @@ bigNumberPtr secondComplementBigNumber(bigNumberPtr bigNumber) {
 }
 
 void printBigNumber(bigNumberPtr bigNumber) {
-    if (!bigNumber)
+    if (!bigNumber || !bigNumber->numberLength || !bigNumber->digits)
         return;
     bigNumberDigitsPtr tempPtr = bigNumber->digits;
     if (bigNumber->isNegative)
@@ -542,7 +755,7 @@ void printBigNumber(bigNumberPtr bigNumber) {
 }
 
 void freeBigNumber(bigNumberPtr internalBigNumber) {
-    if (!internalBigNumber)
+    if (!internalBigNumber || !internalBigNumber->numberLength)
         return;
     bigNumberDigitsPtr tempPtr = internalBigNumber->digits;
     bigNumberDigitsPtr nextBigNumber = NULL;

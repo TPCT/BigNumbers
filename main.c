@@ -1,21 +1,27 @@
 #include "Bignumbers.h"
 
 int main() {
-    bigNumberPtr firstNumber = storeBigNumber("-1025");
-    bigNumberPtr secondNumber = storeBigNumber("-210");
-    bigNumberPtr minimumNumber = subtractBigNumbers(2, firstNumber, secondNumber);
-    printBigNumber(minimumNumber);
-    /*bigNumberPtr secondNumber = storeBigNumber("+00000");
-    bigNumberPtr thirdNumber = storeBigNumber("+0100");
-    bigNumberPtr fourthNumber = storeBigNumber("+0000000");
-    bigNumberPtr additionNumber = addBigNumbers(4, firstNumber, secondNumber, thirdNumber, fourthNumber);
-    */
+    bigNumberPtr firstNumber = storeBigNumber("0");
+    bigNumberPtr secondNumber = storeBigNumber("999");
+    bigNumberPtr addition = addBigNumbers(2, firstNumber, secondNumber);
+    bigNumberPtr subtraction = subtractBigNumbers(2, firstNumber, secondNumber);
+    bigNumberPtr max = getMaxBigNumber(2, firstNumber, secondNumber);
+    bigNumberPtr min = getMinBigNumber(2, firstNumber, secondNumber);
+    bigNumberPtr firstComplement = firstComplementBigNumber(firstNumber);
+    bigNumberPtr secondComplement = secondComplementBigNumber(firstNumber);
+    printBigNumber(addition);
+    printBigNumber(max);
+    printBigNumber(min);
+    printBigNumber(firstComplement);
+    printBigNumber(secondComplement);
+    printBigNumber(subtraction);
     freeBigNumber(firstNumber);
     freeBigNumber(secondNumber);
-    freeBigNumber(minimumNumber);
-    /*freeBigNumber(secondNumber);
-    freeBigNumber(thirdNumber);
-    freeBigNumber(fourthNumber);
-    freeBigNumber(additionNumber);*/
+    freeBigNumber(addition);
+    freeBigNumber(subtraction);
+    freeBigNumber(max);
+    freeBigNumber(min);
+    freeBigNumber(firstComplement);
+    freeBigNumber(secondComplement);
     return 0;
 }
