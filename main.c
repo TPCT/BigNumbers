@@ -1,8 +1,10 @@
 #include "Bignumbers.h"
+#include "time.h"
+#include "limits.h"
 
 int main() {
-    bigNumberPtr firstNumber = storeBigNumber("0");
-    bigNumberPtr secondNumber = storeBigNumber("999");
+    bigNumberPtr firstNumber = storeBigNumber("15489");
+    bigNumberPtr secondNumber = storeBigNumber("1");
     bigNumberPtr addition = addBigNumbers(2, firstNumber, secondNumber);
     bigNumberPtr subtraction = subtractBigNumbers(2, firstNumber, secondNumber);
     bigNumberPtr max = getMaxBigNumber(2, firstNumber, secondNumber);
@@ -15,7 +17,6 @@ int main() {
     printBigNumber(firstComplement);
     printBigNumber(secondComplement);
     printBigNumber(subtraction);
-    freeBigNumber(firstNumber);
     freeBigNumber(secondNumber);
     freeBigNumber(addition);
     freeBigNumber(subtraction);
@@ -23,5 +24,6 @@ int main() {
     freeBigNumber(min);
     freeBigNumber(firstComplement);
     freeBigNumber(secondComplement);
+    freeBigNumber(firstNumber);
     return 0;
 }

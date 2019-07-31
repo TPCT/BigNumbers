@@ -7,6 +7,7 @@
 #include <malloc.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <math.h>
 #define MAXLENGTH 19
 typedef struct bigNumberDigits *bigNumberDigitsPtr;
 typedef struct bigNumber *bigNumberPtr;

@@ -37,6 +37,12 @@ static void _BigNumberCpy(bigNumberPtr *destNumber, bigNumberPtr srcNumber) {
         if ((i + 2) < maxLength) {
             nextChunk = destNumberDigits;
             destNumberDigits->previousChunk = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumberDigits));
+            if (!destNumberDigits->previousChunk) {
+                printf("There's no enough Memory"),
+                        (*destNumber)->digits = nextChunk,
+                        freeBigNumber(*destNumber);
+                return;
+            }
             destNumberDigits = destNumberDigits->previousChunk;
             destNumberDigits->nextChunk = nextChunk;
         }
@@ -47,8 +53,8 @@ static void _BigNumberCpy(bigNumberPtr *destNumber, bigNumberPtr srcNumber) {
 }
 
 static bigNumberPtr _specialGetMaxBigNumber(bigNumberPtr firstNumber, bigNumberPtr secondNumber) {
-    if (!firstNumber || !firstNumber->digits) return secondNumber;
-    if (!secondNumber || !secondNumber->digits) return firstNumber;
+    if (!firstNumber || !firstNumber->numberLength || !firstNumber->digits) return secondNumber;
+    if (!secondNumber || !firstNumber->numberLength || !secondNumber->digits) return firstNumber;
     bigNumberDigitsPtr firstNumberDigits = firstNumber->digits;
     bigNumberDigitsPtr secondNumberDigits = secondNumber->digits;
     bigNumberPtr maxBigNumber = NULL;
@@ -111,8 +117,8 @@ static bigNumberPtr _specialGetMaxBigNumber(bigNumberPtr firstNumber, bigNumberP
 }
 
 static bigNumberPtr _specialGetMinBigNumber(bigNumberPtr firstNumber, bigNumberPtr secondNumber) {
-    if (!firstNumber || !firstNumber->digits) return secondNumber;
-    if (!secondNumber || !secondNumber->digits) return firstNumber;
+    if (!firstNumber || !firstNumber->numberLength || !firstNumber->digits) return secondNumber;
+    if (!secondNumber || !firstNumber->numberLength || !secondNumber->digits) return firstNumber;
     bigNumberDigitsPtr firstNumberDigits = firstNumber->digits;
     bigNumberDigitsPtr secondNumberDigits = secondNumber->digits;
     bigNumberPtr minBigNumber = NULL;
@@ -175,8 +181,8 @@ static bigNumberPtr _specialGetMinBigNumber(bigNumberPtr firstNumber, bigNumberP
 }
 
 static bigNumberPtr _addBigNumbers(bigNumberPtr firstNumber, bigNumberPtr secondNumber) {
-    if (!firstNumber || !firstNumber->digits) return secondNumber;
-    if (!secondNumber || !secondNumber->digits) return firstNumber;
+    if (!firstNumber || !firstNumber->numberLength || !firstNumber->digits) return secondNumber;
+    if (!secondNumber || !firstNumber->numberLength || !secondNumber->digits) return firstNumber;
     bigNumberPtr AdditionNumber;
     if (firstNumber->isNegative != secondNumber->isNegative) {
         AdditionNumber = _subtractBigNumbers(firstNumber, secondNumber);
@@ -254,7 +260,7 @@ static bigNumberPtr _addBigNumbers(bigNumberPtr firstNumber, bigNumberPtr second
 }
 
 static bigNumberPtr _firstComplementBigNumber(bigNumberPtr Number) {
-    if (!Number)
+    if (!Number || !Number->numberLength || !Number->digits)
         return Number;
     unsigned long long counter = 0;
     bigNumberPtr complementNumber = (bigNumberPtr) calloc(1, sizeof(bigNumber));
@@ -266,7 +272,6 @@ static bigNumberPtr _firstComplementBigNumber(bigNumberPtr Number) {
     complementNumber->isNegative = 0;
     char firstDigit = 1;
     while (counter < Number->numberLength) {
-        nextChunk = tempOpPtr;
         if (firstDigit) {
             tempOpPtr->chunkOfNumber1 = 9 - numberTail->chunkOfNumber1;
             firstDigit = 0;
@@ -274,21 +279,29 @@ static bigNumberPtr _firstComplementBigNumber(bigNumberPtr Number) {
             tempOpPtr->chunkOfNumber0 = 9 - numberTail->chunkOfNumber0;
             firstDigit = 1;
             numberTail = numberTail->previousChunk;
+            nextChunk = tempOpPtr;
             if ((counter + 1) < Number->numberLength) {
                 tempOpPtr->previousChunk = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumberDigits));
+                if (!tempOpPtr->previousChunk) {
+                    printf("There's no enough Memory"),
+                            complementNumber->digits = nextChunk,
+                            freeBigNumber(complementNumber);
+                    return NULL;
+                }
                 tempOpPtr = tempOpPtr->previousChunk;
+                tempOpPtr->nextChunk = nextChunk;
             }
-            tempOpPtr->nextChunk = nextChunk;
         }
         counter++;
     }
-    nextChunk->previousChunk = Tail;
-    Tail->nextChunk = nextChunk;
-    complementNumber->digits = nextChunk;
+    tempOpPtr->previousChunk = Tail;
+    Tail->nextChunk = tempOpPtr;
+    complementNumber->digits = tempOpPtr;
+    return complementNumber;
 }
 
 static bigNumberPtr _secondComplementBigNumber(bigNumberPtr Number) {
-    if (!Number)
+    if (!Number || !Number->numberLength || !Number->digits)
         return Number;
     unsigned long long counter = 0;
     bigNumberPtr complementNumber = (bigNumberPtr) calloc(1, sizeof(bigNumber));
@@ -300,7 +313,6 @@ static bigNumberPtr _secondComplementBigNumber(bigNumberPtr Number) {
     complementNumber->isNegative = 0;
     char opData = 0X40;
     while (counter < Number->numberLength) {
-        nextChunk = tempOpPtr;
         if (opData & 0x40) {
             if (!(opData & 0x20))
                 opData = 0x20 | (9 - numberTail->chunkOfNumber1 + 1);
@@ -310,27 +322,35 @@ static bigNumberPtr _secondComplementBigNumber(bigNumberPtr Number) {
                 opData = 0x80 | 0x20 | (10 - (opData & 0x1F));
             tempOpPtr->chunkOfNumber1 = opData & 0x1F;
         } else {
-            opData = 0x40 | 0x20 | (9 - numberTail->chunkOfNumber1 + ((opData & 0x08) >> 7));
+            opData = 0x40 | 0x20 | (9 - numberTail->chunkOfNumber0 + ((opData & 0x08) >> 7));
             if ((opData & 0x1F) > 9)
                 opData = 0x80 | 0x40 | 0x20 | (10 - (opData & 0x1F));
-            tempOpPtr->chunkOfNumber1 = opData & 0x1F;
+            tempOpPtr->chunkOfNumber0 = opData & 0x1F;
+            nextChunk = tempOpPtr;
+            numberTail = numberTail->previousChunk;
             if ((counter + 1) < Number->numberLength) {
                 tempOpPtr->previousChunk = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumberDigits));
+                if (!tempOpPtr->previousChunk) {
+                    printf("There's no enough Memory"),
+                            complementNumber->digits = nextChunk,
+                            freeBigNumber(complementNumber);
+                    return NULL;
+                }
                 tempOpPtr = tempOpPtr->previousChunk;
                 tempOpPtr->nextChunk = nextChunk;
             }
         }
         counter++;
     }
-    nextChunk->previousChunk = Tail;
-    Tail->nextChunk = nextChunk;
-    complementNumber->digits = nextChunk;
+    tempOpPtr->previousChunk = Tail;
+    Tail->nextChunk = tempOpPtr;
+    complementNumber->digits = tempOpPtr;
     return complementNumber;
 }
 
 static bigNumberPtr _getMaxBigNumber(bigNumberPtr firstNumber, bigNumberPtr secondNumber) {
-    if (!firstNumber || !firstNumber->digits) return secondNumber;
-    if (!secondNumber || !secondNumber->digits) return firstNumber;
+    if (!firstNumber || !firstNumber->numberLength || !firstNumber->digits) return secondNumber;
+    if (!secondNumber || !firstNumber->numberLength || !secondNumber->digits) return firstNumber;
     bigNumberDigitsPtr firstNumberDigits = firstNumber->digits;
     bigNumberDigitsPtr secondNumberDigits = secondNumber->digits;
     bigNumberPtr maxBigNumber = NULL;
@@ -392,8 +412,8 @@ static bigNumberPtr _getMaxBigNumber(bigNumberPtr firstNumber, bigNumberPtr seco
 }
 
 static bigNumberPtr _getMinBigNumber(bigNumberPtr firstNumber, bigNumberPtr secondNumber) {
-    if (!firstNumber || !firstNumber->digits) return secondNumber;
-    if (!secondNumber || !secondNumber->digits) return firstNumber;
+    if (!firstNumber || !firstNumber->numberLength || !firstNumber->digits) return secondNumber;
+    if (!secondNumber || !firstNumber->numberLength || !secondNumber->digits) return firstNumber;
     bigNumberDigitsPtr firstNumberDigits = firstNumber->digits;
     bigNumberDigitsPtr secondNumberDigits = secondNumber->digits;
     bigNumberPtr minBigNumber = NULL;
@@ -455,8 +475,8 @@ static bigNumberPtr _getMinBigNumber(bigNumberPtr firstNumber, bigNumberPtr seco
 }
 
 static bigNumberPtr _subtractBigNumbers(bigNumberPtr firstNumber, bigNumberPtr secondNumber) {
-    if (!firstNumber || !firstNumber->digits) return secondNumber;
-    if (!secondNumber || !secondNumber->digits) return firstNumber;
+    if (!firstNumber || !firstNumber->numberLength || !firstNumber->digits) return secondNumber;
+    if (!secondNumber || !firstNumber->numberLength || !secondNumber->digits) return firstNumber;
     bigNumberPtr tempNumber = NULL;
     if (secondNumber->isNegative && !firstNumber->isNegative) {
         secondNumber->isNegative = False;
@@ -538,6 +558,14 @@ static bigNumberPtr _subtractBigNumbers(bigNumberPtr firstNumber, bigNumberPtr s
     return tempNumber;
 }
 
+static bigNumberPtr _multiplyBigNumbers(bigNumberPtr firstNumber, bigNumberPtr secondNumber) {
+    bigNumberPtr smallestLengthNumber = (firstNumber->numberLength > secondNumber->numberLength)
+                                        ? secondNumber : firstNumber;
+    bigNumberPtr greatestLengthNumber = (smallestLengthNumber == firstNumber) ? secondNumber : firstNumber;
+    bigNumberPtr resultNumber = (bigNumberPtr) calloc(1, sizeof(bigNumber));
+
+}
+
 bigNumberPtr storeBigNumber(stringConstant number) {
     if (!number || !*number)
         return NULL;
@@ -584,7 +612,8 @@ bigNumberPtr storeBigNumber(stringConstant number) {
     bigNumberDigitsPtr Tail = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumber));
     bigNumberPtr internalBigNumber = (bigNumberPtr) calloc(1, sizeof(bigNumber));
     bigNumberDigitsPtr nextChunk = NULL;
-    internalBigNumber->isNegative = 0;
+    if (settings & 0x2)
+        internalBigNumber->isNegative = 1;
     internalBigNumber->numberLength = numberLength;
     bigNumberDigitsPtr tempNumber = Tail;
     do {
@@ -599,6 +628,12 @@ bigNumberPtr storeBigNumber(stringConstant number) {
                 if ((numberCounter + 1) < numberLength) {
                     nextChunk = tempNumber;
                     tempNumber->previousChunk = (bigNumberDigitsPtr) calloc(1, sizeof(bigNumberDigits));
+                    if (!tempNumber->previousChunk) {
+                        printf("There's no enough Memory"),
+                                internalBigNumber->digits = nextChunk,
+                                freeBigNumber(internalBigNumber);
+                        return NULL;
+                    }
                     tempNumber = tempNumber->previousChunk;
                     tempNumber->nextChunk = nextChunk;
                 }
@@ -611,11 +646,9 @@ bigNumberPtr storeBigNumber(stringConstant number) {
         numberCounter++;
     } while (numberCounter < numberLength && currentChar);
     free(tempNumberString);
+    internalBigNumber->digits = tempNumber;
     Tail->nextChunk = tempNumber;
     tempNumber->previousChunk = Tail;
-    internalBigNumber->digits = tempNumber;
-    if (settings & 0x2)
-        internalBigNumber->isNegative = 1;
     return internalBigNumber;
 }
 
@@ -779,3 +812,5 @@ void printBinaryNumber(long long number) {
     printf("%s\n", binaryData);
     free(binaryData);
 }
+
+/* TODO: checking if there's space in systems memory */
